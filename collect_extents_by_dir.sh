@@ -1,4 +1,5 @@
 #!/bin/bash
+# sudo nohup ./collect_extents_by_dir.sh > analysis_$(date +%Y%m%d_%H%M%S).log 2>&1 &
 
 set -e
 
