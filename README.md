@@ -2,15 +2,17 @@
 extent_analysis
 지금부터 전체 파일시스템의 실제 extent 크기 리스트를 병렬로 수집해서 CSV로 분석하는 풀 파이프라인을 만들어줄게.
 
-🧱 전체 구성 요소
-구성 파일	역할 설명
-collect_extents.sh	전체 파일을 대상으로 extent 추출 병렬 실행
-extract_extents.py	개별 파일의 extent 크기 리스트 수집
-merge_extents.py	모든 개별 CSV → 하나의 병합 CSV 생성
-analyze_extents.py	히스토그램, 단편화 상위 파일, 디렉토리 분석
-analyze_by_storage.py	스토리지(디바이스)별 extent 통계 및 시각화
-extent_output/	개별 파일 결과 저장 폴더
-file_extent_details.csv	병합된 전체 extent 데이터
+🧱 전체 구성 요소.
+├── runner.sh                    # 전체 자동 실행
+├── collect_extents.sh           # 정제 대상만 수집 + 병렬 처리
+├── extract_extents.py           # 개별 파일의 extent 정보 추출
+├── merge_extents.py             # 결과 병합
+├── analyze_extents.py           # 시각화: 전체 분석
+├── analyze_by_storage.py        # 시각화: 스토리지별 분석
+├── extent_output/               # 개별 파일의 extent 결과
+├── file_extent_details.csv      # 병합된 결과 파일
+├── all_files.txt                # 분석 대상 파일 목록
+
 
 🚀 실행 순서 요약
 ✅ 1. 전체 extent 수집 실행
