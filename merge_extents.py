@@ -8,7 +8,7 @@ files = glob.glob("extent_output/*.csv")
 dfs = []
 
 for f in files:
-    df = pd.read_csv(f, header=None, names=["파일경로", "Extent번호", "Extent크기(Bytes)"])
+    df = pd.read_csv(f, header=None, names=["파일경로", "Extent번호", "블록수"])
     dfs.append(df)
 
 merged = pd.concat(dfs, ignore_index=True)
