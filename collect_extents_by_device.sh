@@ -4,6 +4,7 @@ set -e
 
 OUTPUT_DIR="extent_output_by_device"
 MERGED_FILE="file_extent_by_device.csv"
+
 # 이전 결과 제거
 if [ -d "$OUTPUT_DIR" ]; then
   echo "🧹 이전 디바이스별 결과 정리 중: $OUTPUT_DIR"
@@ -16,22 +17,25 @@ if [ -f "$MERGED_FILE" ]; then
 fi
 
 rm -f device_analysis_*.log 2>/dev/null || true
-# 디바이스별 결과 저장 디렉토리 생성
+
 mkdir -p "$OUTPUT_DIR"
 echo "device,mount_point" > "$OUTPUT_DIR/device_map.csv"
 
-# 마운트된 디바이스 목록 추출 (tmpfs/devtmpfs 제외)
-df --output=source,target -x tmpfs -x devtmpfs | tail -n +2 | while read dev mount; do
-  if [[ "$dev" == /dev/* ]]; then
-    safe_name=$(echo "$dev" | sed 's|/|_|g')
-    out_file="$OUTPUT_DIR/${safe_name}.csv"
-    echo "🔍 $dev ($mount) → $out_file"
-    echo "$dev,$mount" >> "$OUTPUT_DIR/device_map.csv"
-    python3 extract_extents_by_dir.py "$mount" "$out_file" &
-  fi
-done
+echo "🔎 디바이스 목록 수집 중..."
+# - tmpfs/devtmpfs 제외
+DEVICES=$(df --output=source,target -x tmpfs -x devtmpfs | tail -n +2 | grep '^/dev/')
 
-wait
+# 디바이스별 병렬 실행 (GNU parallel)
+# --jobs 0: 최대 병렬성
+# --colsep ' +' : 공백 분리로 {1} {2} 매핑
+# --line-buffer : 실시간 로그
+echo "$DEVICES" | parallel --jobs 0 --colsep ' +' --line-buffer '
+  safe_name=$(echo {1} | sed "s|/|_|g");   # /dev/sda1 -> _dev_sda1
+  out_file="'$OUTPUT_DIR'/${safe_name}.csv";
+  echo "{1},{2}" >> "'$OUTPUT_DIR'/device_map.csv";
+  echo "🔍 {1} ({2}) -> $out_file";
+  python3 extract_extents_by_dir.py "{2}" "$out_file"
+'
 
 echo "✅ 모든 디바이스 분석 완료: $OUTPUT_DIR/*.csv"
 
