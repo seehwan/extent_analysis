@@ -34,7 +34,8 @@ def extract_extents(file_path):
                     except ValueError:
                         continue
         return extents
-    except:
+    except Exception as e:
+        debug(f"Error processing {file_path}: {e}")
         return []
 
 if len(sys.argv) != 3:
