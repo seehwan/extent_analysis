@@ -1,4 +1,6 @@
 #!/bin/bash
+# nohup ./runner.sh > analysis.log 2>&1 &
+
 
 set -e
 
