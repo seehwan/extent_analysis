@@ -1,5 +1,3 @@
-# extract_extents_by_dir.py
-
 import os
 import sys
 import subprocess
@@ -13,30 +11,47 @@ def debug(msg):
         log.write(f"{msg}\n")
 
 def extract_extents(file_path):
+    # 1) 심볼릭 링크 건너뛰기
     if os.path.islink(file_path):
+        debug(f"symlink: {file_path}")
         return []
+
+    # 2) df 실패 여부
     try:
         subprocess.check_output(['df', file_path], stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
+        debug(f"df failed: {file_path}")
         return []
+
+    # 3) filefrag 실행
     try:
         result = subprocess.check_output(['filefrag', '-v', file_path], stderr=subprocess.DEVNULL).decode()
-        extents = []
-        for line in result.splitlines():
-            line = line.strip()
-            if re.match(r'^\d+:', line):
-                parts = line.split(":")
-                if len(parts) >= 4:
-                    try:
-                        length_str = parts[3].strip()
-                        length = int(length_str)
-                        extents.append(length)
-                    except ValueError:
-                        continue
-        return extents
     except Exception as e:
-        debug(f"Error processing {file_path}: {e}")
+        debug(f"filefrag error: {file_path} - {e}")
         return []
+
+    # 4) extent 파싱
+    extents = []
+    for line in result.splitlines():
+        line = line.strip()
+        if re.match(r'^\d+:', line):
+            parts = line.split(":")
+            if len(parts) >= 4:
+                try:
+                    length_str = parts[3].strip()
+                    length = int(length_str)
+                    extents.append(length)
+                except ValueError:
+                    debug(f"failed to parse length: {file_path} -> {parts}")
+                    continue
+
+    # 5) 결과 반환 + 로깅
+    if not extents:
+        debug(f"no extents: {file_path}")
+    else:
+        debug(f"wrote {len(extents)} extents: {file_path}")
+
+    return extents
 
 if len(sys.argv) != 3:
     print("Usage: python3 extract_extents_by_dir.py <directory> <output_csv>")
