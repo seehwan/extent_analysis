@@ -35,3 +35,51 @@
 sudo apt update
 sudo apt install parallel e2fsprogs
 sudo pip3 install pandas matplotlib seaborn tqdm
+
+2. **권한 부여**
+```bash
+chmod +x collect_extents_by_device.sh
+
+3. **nohup으로 실행**
+```bash
+sudo nohup ./collect_extents_by_device.sh > device_analysis_$(date +%Y%m%d_%H%M%S).log 2>&1 &
+
+백그라운드에서 실행되며, 터미널을 닫아도 계속 동작
+
+모든 디바이스 분석이 끝나면 자동으로 CSV를 병합하여 file_extent_by_device.csv 생성
+
+4. **결과 확인**
+
+디바이스별 CSV: extent_output_by_device/*.csv
+
+병합 결과: file_extent_by_device.csv
+
+5. **(선택) analyze_extents.py를 실행해 시각화/통계 확인**
+
+---
+
+## 📊 분석 예시
+히스토그램: Extent 블록 수 분포
+
+단편화 상위 파일: Extent 개수가 많은 파일 찾기
+
+디바이스별 비교:
+
+각 디바이스의 평균/최대/총 블록 수
+
+
+---
+
+## 📝 참고
+extract_extents_by_dir.py는 로그를 남기지 않는 버전이므로, 오류나 제외된 파일 정보를 알고 싶다면 로깅 기능을 추가할 수 있음.
+
+심볼릭 링크, 접근 불가 파일, filefrag 실패 파일은 결과에 기록되지 않습니다.
+
+필요하면 analyze_by_storage.py 같은 고급 스크립트로 스토리지 단위 또는 디렉토리 단위 세분화 분석도 가능.
+
+
+---
+
+## 🙏 기여 / 문의
+본 스크립트는 내부 디스크 단편화 분석용으로 제작되었습니다.
+이슈나 개선 사항 있으면 언제든 알려주세요!
