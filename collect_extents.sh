@@ -2,20 +2,26 @@
 
 set -e
 
-echo "📂 [1] 분석 대상 파일 목록 수집 중..."
+TARGET_FILE="all_files.txt"
 
-# 정제된 파일 수집: 일반 파일만 + 가상/장치 경로 제외
-find / \
-  -type f \
-  -not -path "/proc/*" \
-  -not -path "/sys/*" \
-  -not -path "/dev/*" \
-  -not -path "/run/*" \
-  -not -path "/tmp/*" \
-  -not -path "/snap/*" \
-  -readable \
-  2>/dev/null > all_files.txt
+echo "📂 [1] 분석 대상 파일 목록 준비 중..."
 
+if [ -f "$TARGET_FILE" ]; then
+    echo "✅ 기존 '$TARGET_FILE' 파일이 존재합니다. 재사용합니다."
+else
+    echo "🔍 파일 목록이 없으므로 새로 수집합니다..."
+    find / \
+      -type f \
+      -not -path "/proc/*" \
+      -not -path "/sys/*" \
+      -not -path "/dev/*" \
+      -not -path "/run/*" \
+      -not -path "/tmp/*" \
+      -not -path "/snap/*" \
+      -readable \
+      2>/dev/null > "$TARGET_FILE"
+    echo "📄 수집된 일반 파일 수: $(wc -l < $TARGET_FILE)"
+fi
 echo "📄 수집된 일반 파일 수: $(wc -l < all_files.txt)"
 
 echo "📦 [2] 결과 디렉토리 초기화"
