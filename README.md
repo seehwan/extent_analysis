@@ -1,101 +1,82 @@
-📊 Ext4 Extent Analyzer
+📦 Extent Analyzer by Directory (High Performance)
 
-이 프로젝트는 Linux Ext4 파일시스템의 모든 파일에 대해 실제 extent 크기 리스트를 병렬로 수집하고 분석하는 고급 자동화 도구입니다. 디스크 단편화 정도, 스토리지 효율, 디바이스별 통계를 시각화할 수 있습니다.
+이 프로젝트는 Linux ext4 파일시스템에서 디렉토리 단위로 extent 정보를 병렬로 분석하고, 그 결과를 통합 및 시각화하는 도구입니다. 대규모 시스템에서도 효율적으로 동작할 수 있도록 설계되었습니다.
 
 🚀 주요 기능
 
-전체 파일시스템의 extent 정보 수집 (filefrag 사용)
+디렉토리 단위로 병렬 분석 (GNU parallel 사용)
 
-장치 파일, 가상 파일, 소켓 등 비분석 대상 자동 제외
+최대 병렬성 지원 (--jobs 0)
 
-디렉토리별 병렬 처리 (GNU parallel 활용)
+결과 CSV 파일은 해시 기반 파일명으로 안전하게 저장
 
-안전한 해시 기반 결과 저장 (파일 이름 충돌 방지)
+extent 정보는 블록 수 단위로 저장
 
-분석 결과 병합 및 시각화 (히스토그램, 산점도, 디바이스별 그래프)
-
-실패 로그 및 디버깅 지원 (debug_extract.log)
+병합 및 분석 자동화 통합 실행 스크립트 포함
 
 📁 프로젝트 구성
 
 .
-├── extract_extents.py         # 단일 파일에 대해 extent 정보 수집
-├── collect_extents.sh         # 전체 병렬 수집 실행 스크립트
-├── merge_extents.py           # 결과 CSV 병합
-├── analyze_extents.py         # 분석 + 시각화 (디렉토리/단편화 등)
-├── analyze_by_storage.py      # 디바이스별 분석 및 그래프 출력
-├── extent_output/             # 파일별 CSV 출력 디렉토리
-├── file_extent_details.csv    # 최종 병합 결과
-├── all_files.txt              # 분석 대상 파일 목록
-├── debug_extract.log          # 실패/예외 기록 로그
+├── extract_extents_by_dir.py       # 디렉토리 내 파일 분석 (단일 CSV 저장)
+├── collect_extents_by_dir.sh       # 전체 병렬 분석 + 병합 + 분석 자동화
+├── merge_extents.py                # CSV 파일 병합
+├── analyze_extents.py              # 시각화 및 통계 출력
+├── analyze_by_storage.py           # 디바이스별 통계 분석
+├── extent_output/                  # 디렉토리 해시 기반 결과 파일 저장소
+│   └── directory_map.csv           # 해시 ↔ 실제 경로 매핑 테이블
+└── file_extent_details.csv         # 병합된 최종 결과
 
 ⚙️ 실행 방법
 
-1. 사전 준비
+1. 의존성 설치
 
-chmod +x collect_extents.sh
+sudo apt install parallel e2fsprogs
+pip3 install pandas matplotlib seaborn tqdm
 
-2. 전체 분석 실행
+2. 분석 스크립트 실행
 
-sudo ./collect_extents.sh
+sudo nohup ./collect_extents_by_dir.sh > analysis_$(date +%Y%m%d_%H%M%S).log 2>&1 &
 
-3. 병합 및 분석
+디렉토리별로 병렬로 분석
 
-python3 merge_extents.py
-python3 analyze_extents.py
-python3 analyze_by_storage.py
+결과 자동 병합 및 시각화
 
-4. 백그라운드 실행 (선택)
+로그는 analysis_*.log에 저장됨
 
-nohup ./collect_extents.sh > log.txt 2>&1 &
+3. 분석 결과 확인
+
+병합된 결과: file_extent_details.csv
+
+디렉토리별 원본: extent_output/*.csv
+
+디렉토리 맵: extent_output/directory_map.csv
 
 📊 출력 예시
 
-히스토그램: 전체 extent 크기 분포 (log-log)
+히스토그램: extent 블록 수 분포
 
-산점도: 파일별 평균 vs 최대 extent 크기
+산점도: 평균 vs 최대 블록 수
 
-바 차트: 디렉토리별, 디바이스별 평균 extent 크기
+디렉토리별 평균 extent 블록 수
 
-단편화 상위 파일 목록 출력
+단편화 상위 파일 목록
 
-🛠 의존성
+🧠 참고사항
 
-Python 3.x
+출력 CSV는 파일경로,Extent번호,블록수 형식
 
-Python packages:
+심볼릭 링크, 접근 불가 파일, 비정상 파일은 자동 제외됨
 
-pandas
+디렉토리 해시는 md5 기반으로 생성
 
-matplotlib
+📬 기여 및 개선 제안
 
-seaborn
+추가 분석 포맷 (SQLite, Parquet)
 
-tqdm
+스토리지별 리포트 자동 생성
 
-시스템 명령어:
+대시보드 연동 등 확장 가능
 
-filefrag
+필요한 기능이나 개선 아이디어가 있다면 언제든지 제안해 주세요!
 
-df
-
-parallel
-
-설치 예시:
-
-sudo apt install e2fsprogs coreutils parallel
-python3 -m pip install pandas matplotlib seaborn tqdm
-
-📌 참고사항
-
-filefrag는 root 권한에서 더 많은 정보를 제공합니다.
-
-df 실패하는 파일은 자동 제외됩니다.
-
-파일명이 길거나 복잡할 수 있으므로 해시(md5) 기반 파일 저장을 사용합니다.
-
-📬 문의 및 기여
-
-이 프로젝트는 내부 분석 및 디스크 최적화 목적에 맞춰 설계되었습니다.
-기여, 개선 제안, 이슈는 언제든 환영합니다!
-
+Happy Analyzing 🚀
