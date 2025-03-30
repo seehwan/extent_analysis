@@ -1,4 +1,5 @@
 #!/bin/bash
+# nohup sudo ./collect_extents_by_device.sh > device_analysis_$(date +%Y%m%d_%H%M%S).log 2>&1 &
 
 set -e
 
