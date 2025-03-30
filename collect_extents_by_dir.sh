@@ -1,11 +1,23 @@
 #!/bin/bash
-# sudo nohup ./collect_extents_by_dir.sh > analysis_$(date +%Y%m%d_%H%M%S).log 2>&1 &
+# sudo ./collect_extents_by_dir.sh > analysis_$(date +%Y%m%d_%H%M%S).log 2>&1 &
 
 set -e
 
 OUTPUT_DIR="extent_output"
 MERGED_FILE="file_extent_details.csv"
 ANALYSIS_SCRIPT="analyze_extents.py"
+
+# 이전 결과 제거
+if [ -d "$OUTPUT_DIR" ]; then
+  echo "🧹 이전 결과 정리 중: $OUTPUT_DIR"
+  rm -rf "$OUTPUT_DIR"
+fi
+
+if [ -f "$MERGED_FILE" ]; then
+  echo "🧹 이전 병합 파일 제거: $MERGED_FILE"
+  rm -f "$MERGED_FILE"
+fi
+
 mkdir -p "$OUTPUT_DIR"
 echo "hash,original_path" > "$OUTPUT_DIR/directory_map.csv"
 
