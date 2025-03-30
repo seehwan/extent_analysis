@@ -32,10 +32,11 @@ DIRS=$(find / -mindepth 1 -maxdepth 1 -type d \
 
 # 디렉토리별 병렬 실행 (GNU parallel 사용, 최대 병렬성)
 echo "$DIRS" | parallel --jobs 0 --will-cite --line-buffer ' \
+  OUT="extent_output"; \
   hash=$(echo -n {} | md5sum | cut -d" " -f1); \
-  out_file="$OUTPUT_DIR/${hash}.csv"; \
+  out_file="$OUT/${hash}.csv"; \
   echo "🔍 {} -> $out_file"; \
-  echo "$hash,{}" >> "$OUTPUT_DIR/directory_map.csv"; \
+  echo "$hash,{}" >> "$OUT/directory_map.csv"; \
   python3 extract_extents_by_dir.py "{}" "$out_file"'
 
 echo "✅ 모든 디렉토리 분석 완료: $OUTPUT_DIR/*.csv"
