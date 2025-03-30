@@ -7,8 +7,9 @@ import hashlib
 BLOCK_SIZE = 4096
 
 def debug(msg):
-    with open("debug_extract.log", "a") as log:
-        log.write(f"{msg}\n")
+    pass
+    # with open("debug_extract.log", "a") as log:
+    #     log.write(f"{msg}\n")
 
 def extract_extents(file_path):
     # 1) 심볼릭 링크 건너뛰기
