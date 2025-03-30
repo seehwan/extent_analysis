@@ -1,17 +1,27 @@
+# extract_extents.py
+
 import sys
 import subprocess
 import re
 import os
+import hashlib
 
 BLOCK_SIZE = 4096
 file_path = sys.argv[1]
+out_dir = sys.argv[2] if len(sys.argv) > 2 else "extent_output"
 
-# 분석 제외: df 실패하는 파일
+def debug(msg):
+    with open("debug_extract.log", "a") as log:
+        log.write(f"{file_path} :: {msg}\n")
+
+# Step 1: Skip files that df can't resolve
 try:
     subprocess.check_output(['df', file_path], stderr=subprocess.DEVNULL)
-except:
+except subprocess.CalledProcessError:
+    debug("❌ df failed")
     sys.exit(0)
 
+# Step 2: Run filefrag and parse extent sizes
 try:
     result = subprocess.check_output(['filefrag', '-v', file_path], stderr=subprocess.DEVNULL).decode()
     extents = []
@@ -21,13 +31,15 @@ try:
             length = int(match.group(1))
             extents.append(length * BLOCK_SIZE)
 
-    if extents:
-        tag = file_path.replace("/", "_").strip("_")
-        output_dir = "extent_output"
-        os.makedirs(output_dir, exist_ok=True)
-        with open(f"{output_dir}/{tag}.csv", "w") as f:
+    if not extents:
+        debug("⚠️ no extents")
+    else:
+        tag_hash = hashlib.md5(file_path.encode()).hexdigest()
+        os.makedirs(out_dir, exist_ok=True)
+        with open(f"{out_dir}/{tag_hash}.csv", "w") as f:
             for i, size in enumerate(extents):
                 f.write(f"{file_path},{i},{size}\n")
+        debug(f"✅ wrote {len(extents)} extents")
 
-except:
-    pass  # 무시
+except Exception as e:
+    debug(f"💥 error: {e} (file: {file_path})")

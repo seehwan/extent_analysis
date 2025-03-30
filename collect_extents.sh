@@ -1,8 +1,12 @@
+# collect_extents.sh
+
 #!/bin/bash
 
 set -e
 
 TARGET_FILE="all_files.txt"
+OUTPUT_DIR="extent_output"
+mkdir -p "$OUTPUT_DIR"
 
 echo "📂 [1] 분석 대상 파일 목록 준비 중..."
 
@@ -22,13 +26,8 @@ else
       2>/dev/null > "$TARGET_FILE"
     echo "📄 수집된 일반 파일 수: $(wc -l < $TARGET_FILE)"
 fi
-echo "📄 수집된 일반 파일 수: $(wc -l < all_files.txt)"
 
-echo "📦 [2] 결과 디렉토리 초기화"
-mkdir -p extent_output
-rm -f extent_output/*.csv
-
-echo "⚙️ [3] 병렬 실행 시작..."
-cat all_files.txt | parallel -j+0 python3 extract_extents.py {}
+echo "⚙️ [2] 병렬 실행 시작..."
+parallel -j $(nproc) python3 extract_extents.py {} "$OUTPUT_DIR" :::: "$TARGET_FILE"
 
 echo "✅ 파일별 extent 수집 완료!"
