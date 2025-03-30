@@ -24,21 +24,21 @@ for pkg in "${REQUIRED_PYTHON_PKGS[@]}"; do
     fi
 done
 
-# ✅ 2. 전체 extent 병렬 수집
-echo "📡 전체 파일 시스템에서 extent 정보 수집 중..."
+# ✅ 2. Extent 수집 시작
+echo "📡 실제 스토리지 파일 대상만 골라서 extent 수집 시작..."
 sudo ./collect_extents.sh
 
 # ✅ 3. 결과 병합
-echo "🧩 결과 병합 중..."
+echo "🧩 수집된 extent 데이터를 하나의 CSV로 병합..."
 python3 merge_extents.py
 
 # ✅ 4. 분석 및 시각화
-echo "📊 기본 분석 및 시각화 실행 중..."
+echo "📊 분석 시작: 기본 통계, 시각화, 단편화 상위 파일..."
 python3 analyze_extents.py
 
-echo "💽 스토리지(디바이스)별 분석 실행 중..."
+echo "💽 분석 시작: 스토리지(디바이스)별 Extent 통계 및 시각화..."
 python3 analyze_by_storage.py
 
 echo "✅ 전체 분석 완료!"
-echo "📁 결과 CSV: file_extent_details.csv"
-echo "📂 개별 결과: extent_output/"
+echo "📁 병합 CSV: file_extent_details.csv"
+echo "📂 개별 CSV: extent_output/"
