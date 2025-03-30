@@ -20,16 +20,22 @@ try:
 except subprocess.CalledProcessError:
     debug("❌ df failed")
     sys.exit(0)
-
 # Step 2: Run filefrag and parse extent sizes
 try:
     result = subprocess.check_output(['filefrag', '-v', file_path], stderr=subprocess.DEVNULL).decode()
     extents = []
+
     for line in result.splitlines():
-        match = re.search(r'^\s*\d+\s+\d+\s+\d+\s+\d*\s+(\d+)', line)
-        if match:
-            length = int(match.group(1))
-            extents.append(length * BLOCK_SIZE)
+        line = line.strip()
+        if re.match(r'^\d+:', line):  # 줄 시작이 "숫자:" 형태
+            parts = line.split(":")
+            if len(parts) >= 5:
+                try:
+                    length_str = parts[4].strip()
+                    length = int(length_str)
+                    extents.append(length * BLOCK_SIZE)
+                except ValueError:
+                    pass
 
     if not extents:
         debug("⚠️ no extents")
