@@ -1,82 +1,37 @@
-📦 Extent Analyzer by Directory (High Performance)
+# Ext4 Device-Based Extent Analysis
 
-이 프로젝트는 Linux ext4 파일시스템에서 디렉토리 단위로 extent 정보를 병렬로 분석하고, 그 결과를 통합 및 시각화하는 도구입니다. 대규모 시스템에서도 효율적으로 동작할 수 있도록 설계되었습니다.
+이 프로젝트는 **Ext4 파일시스템**의 **디바이스 단위** 마운트 지점에 대해, 모든 파일의 extent 정보를 병렬로 수집·병합·분석하기 위한 스크립트와 코드 모음입니다. 터미널을 닫아도 계속 실행될 수 있도록 `nohup` 방식을 지원하며, 최종적으로 CSV 형태의 결과를 생성해 다양한 통계와 시각화를 제공합니다.
 
-🚀 주요 기능
+---
 
-디렉토리 단위로 병렬 분석 (GNU parallel 사용)
+## 📂 파일 목록
 
-최대 병렬성 지원 (--jobs 0)
+1. **collect_extents_by_device.sh**  
+   - 디바이스별 병렬 분석을 총괄하는 스크립트입니다.  
+   - 실행 전 이전 결과 디렉토리(`extent_output_by_device`)와 병합 파일(`file_extent_by_device.csv`)을 정리(삭제)합니다.  
+   - `df --output=source,target -x tmpfs -x devtmpfs` 명령으로 디바이스를 탐색한 뒤, 각 마운트 포인트를 대상으로 `extract_extents_by_dir.py`를 병렬로 실행합니다.  
+   - 모든 병렬 작업이 끝나면 `merge_extents.py`를 통해 CSV를 병합한 뒤, 최종 결과(`file_extent_by_device.csv`)를 생성합니다.
 
-결과 CSV 파일은 해시 기반 파일명으로 안전하게 저장
+2. **extract_extents_by_dir.py**  
+   - 특정 디렉토리(마운트 지점 포함) 하위의 모든 파일을 재귀적으로 순회하며, `filefrag -v`를 사용해 extent 정보를 수집합니다.  
+   - 파일별로 `파일경로,Extent번호,블록수` 형식으로 CSV에 기록합니다.  
+   - 심볼릭 링크나 권한 실패, `filefrag` 오류 등은 자동으로 제외되며, 로그 파일(`debug_extract.log`)도 생성하지 않는 버전으로 구성되었습니다.
 
-extent 정보는 블록 수 단위로 저장
+3. **merge_extents.py**  
+   - 하나의 디렉토리에 존재하는 여러 CSV 파일을 **단일 CSV**로 병합합니다.  
+   - `pandas`의 `pd.concat`을 활용해 결과를 통합하고, `file_extent_by_device.csv` (또는 지정된 파일명)으로 내보냅니다.
 
-병합 및 분석 자동화 통합 실행 스크립트 포함
+4. **analyze_extents.py** (선택)  
+   - 최종 병합된 CSV 파일(`file_extent_by_device.csv`)을 읽어, **통계/시각화**를 수행합니다.  
+   - 예: Extent 블록 수 분포 히스토그램, 단편화 상위 파일 목록, 디렉토리별/디바이스별 평균 블록 수 등의 통계.
 
-📁 프로젝트 구성
+---
 
-.
-├── extract_extents_by_dir.py       # 디렉토리 내 파일 분석 (단일 CSV 저장)
-├── collect_extents_by_dir.sh       # 전체 병렬 분석 + 병합 + 분석 자동화
-├── merge_extents.py                # CSV 파일 병합
-├── analyze_extents.py              # 시각화 및 통계 출력
-├── analyze_by_storage.py           # 디바이스별 통계 분석
-├── extent_output/                  # 디렉토리 해시 기반 결과 파일 저장소
-│   └── directory_map.csv           # 해시 ↔ 실제 경로 매핑 테이블
-└── file_extent_details.csv         # 병합된 최종 결과
+## 🚀 사용 방법
 
-⚙️ 실행 방법
+1. **의존성 설치**
 
-1. 의존성 설치
-
+```bash
+sudo apt update
 sudo apt install parallel e2fsprogs
-pip3 install pandas matplotlib seaborn tqdm
-
-2. 분석 스크립트 실행
-
-sudo nohup ./collect_extents_by_dir.sh > analysis_$(date +%Y%m%d_%H%M%S).log 2>&1 &
-
-디렉토리별로 병렬로 분석
-
-결과 자동 병합 및 시각화
-
-로그는 analysis_*.log에 저장됨
-
-3. 분석 결과 확인
-
-병합된 결과: file_extent_details.csv
-
-디렉토리별 원본: extent_output/*.csv
-
-디렉토리 맵: extent_output/directory_map.csv
-
-📊 출력 예시
-
-히스토그램: extent 블록 수 분포
-
-산점도: 평균 vs 최대 블록 수
-
-디렉토리별 평균 extent 블록 수
-
-단편화 상위 파일 목록
-
-🧠 참고사항
-
-출력 CSV는 파일경로,Extent번호,블록수 형식
-
-심볼릭 링크, 접근 불가 파일, 비정상 파일은 자동 제외됨
-
-디렉토리 해시는 md5 기반으로 생성
-
-📬 기여 및 개선 제안
-
-추가 분석 포맷 (SQLite, Parquet)
-
-스토리지별 리포트 자동 생성
-
-대시보드 연동 등 확장 가능
-
-필요한 기능이나 개선 아이디어가 있다면 언제든지 제안해 주세요!
-
-Happy Analyzing 🚀
+sudo pip3 install pandas matplotlib seaborn tqdm
