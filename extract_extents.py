@@ -4,8 +4,14 @@ import re
 import os
 
 BLOCK_SIZE = 4096
-
 file_path = sys.argv[1]
+
+# 분석 제외: df 실패하는 파일
+try:
+    subprocess.check_output(['df', file_path], stderr=subprocess.DEVNULL)
+except:
+    sys.exit(0)
+
 try:
     result = subprocess.check_output(['filefrag', '-v', file_path], stderr=subprocess.DEVNULL).decode()
     extents = []
