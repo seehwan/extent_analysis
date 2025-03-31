@@ -1,3 +1,4 @@
 file_extent_by_device.csv
 analyze_device_extents.py
 file_extent_details.csv
+device_stats.csv
