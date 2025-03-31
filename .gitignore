@@ -2,3 +2,9 @@ file_extent_by_device.csv
 analyze_device_extents.py
 file_extent_details.csv
 device_stats.csv
+extent_output_by_device/_dev_sda1.csv
+extent_output_by_device/_dev_sda2.csv
+extent_output_by_device/_dev_sdb1.csv
+extent_output_by_device/_dev_sdc1.csv
+extent_output_by_device/_dev_sdd1.csv
+extent_output_by_device/_dev_sde1.csv
