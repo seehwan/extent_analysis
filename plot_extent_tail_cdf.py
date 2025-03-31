@@ -26,31 +26,32 @@ for fpath in glob.glob(f"{input_dir}/*.csv"):
 
     device_blocks[device] = blocks
 
-# Compute 90th percentile cutoff
+# Compute 90th percentile
 p90 = np.percentile(all_blocks, 90)
 print(f"📌 90th percentile: {p90:.2f} blocks")
 
-# CDF plot helper
+# Tail CDF plotting helper
 def plot_tail_cdf(data, label=None):
     data = np.array([x for x in data if x > p90])
     if len(data) == 0:
         return
     data = np.sort(data)
-    y = np.linspace(0, 1, len(data))
+    y = np.linspace(0.9, 1.0, len(data))
     plt.plot(data, y, label=label)
 
-# 🎯 1. Global tail CDF
+# 🎯 1. Global Tail CDF
 filtered_all = [x for x in all_blocks if x > p90]
 plt.figure(figsize=(8, 5))
 plot_tail_cdf(filtered_all)
 plt.title("Extent Size Tail CDF (All Devices, >90th percentile)")
 plt.xlabel("Blocks per Extent")
 plt.ylabel("Cumulative Probability (Tail)")
+plt.ylim(0.9, 1.0)
 plt.grid(True)
 plt.tight_layout()
 plt.show()
 
-# 🎯 2. Per-device tail CDFs
+# 🎯 2. Per-device Tail CDFs
 device_list = list(device_blocks.keys())
 max_per_row = 3
 rows = ceil(len(device_list) / max_per_row)
@@ -63,7 +64,8 @@ for idx, device in enumerate(device_list):
         plot_tail_cdf(tail_data)
     plt.title(device.replace("_dev_", "/dev/"))
     plt.xlabel("Blocks")
-    plt.ylabel("Tail CDF")
+    plt.ylabel("CDF")
+    plt.ylim(0.9, 1.0)
     plt.grid(True)
 
 plt.tight_layout()
