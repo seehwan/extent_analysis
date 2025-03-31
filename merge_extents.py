@@ -11,6 +11,7 @@ if not csv_files:
 
 dfs = []
 for f in csv_files:
+    print(f"📂 Reading {f}")
     df = pd.read_csv(f, header=None, names=["파일경로","Extent번호","블록수"])
     if not df.empty:
         dfs.append(df)
