@@ -5,15 +5,19 @@ import matplotlib.pyplot as plt
 df = pd.read_csv("device_stats.csv")
 df["device"] = df["device"].str.replace("^_dev_", "/dev/", regex=True)
 
-# 공통: 바 위에 숫자 표시 함수
+# 숫자 표시 함수 (자동 위치 조절 포함)
 def annotate_bars(ax, fmt="{:.0f}"):
     for bar in ax.patches:
         height = bar.get_height()
+        xpos = bar.get_x() + bar.get_width() / 2
+        ypos = height
+        offset = 5
+
         ax.annotate(fmt.format(height),
-                    xy=(bar.get_x() + bar.get_width() / 2, height),
-                    xytext=(0, 3),  # 바 위에 3pt 띄우기
+                    xy=(xpos, ypos),
+                    xytext=(0, offset),
                     textcoords="offset points",
-                    ha="center", va="bottom", fontsize=9)
+                    ha="center", va="bottom", fontsize=9, color="black")
 
 # 📊 그래프 시작
 plt.figure(figsize=(12, 6))

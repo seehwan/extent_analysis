@@ -75,9 +75,24 @@ plt.figure(figsize=(5 * max_per_row, 4 * rows))
 for idx, device in enumerate(device_list):
     plt.subplot(rows, max_per_row, idx + 1)
     tail_data = [x for x in device_blocks[device] if x > p99]
-    if tail_data:
-        plot_tail_cdf(tail_data)
-    plt.axvline(p999, color='red', linestyle='--', linewidth=1)
+    if not tail_data:
+        continue
+
+    # CDF 라인
+    plot_tail_cdf(tail_data)
+
+    # ✅ 디바이스 전용 99.9p 위치 계산
+    p999_dev = np.percentile(device_blocks[device], 99.9)
+
+    # 수직선
+    plt.axvline(p999_dev, color='red', linestyle='--', linewidth=1)
+
+    # 라벨 텍스트
+    plt.text(
+        p999_dev, 0.995, f"{p999_dev:.0f}",  # 위치 조정
+        color="red", fontsize=8, ha='left', va='bottom', rotation=90
+    )
+
     plt.title(device.replace("_dev_", "/dev/"))
     plt.xlabel("Blocks")
     plt.ylabel("CDF")
